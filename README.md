@@ -13,7 +13,7 @@ Entwickelt und getestet auf einem **Xiaomi Redmi Pad 2**. 🚀
 - 🔁 **Ladezyklen** des Akkus, um die Alterung über Monate zu beobachten
 - 🌡️ CPU-, GPU-, Lade- und Gehäusetemperaturen
 - 🧮 Abschätzung, wie viel Energie der Akku bisher durchgesetzt hat, **inklusive Ladeverlusten**
-- 🏠 Läuft dauerhaft im Hintergrund (tmux), ohne Root
+- 🏠 Läuft im Hintergrund in Termux (mit tmux und Wake-Lock), ohne Root
 
 ---
 
@@ -56,7 +56,7 @@ pip install paho-mqtt
 |---|---|
 | `python` | Ausführen der Skripte |
 | `termux-api` | Zugriff auf die Akkudaten (`termux-battery-status`) |
-| `tmux` | Skript im Hintergrund weiterlaufen lassen |
+| `tmux` | Optional: Sitzung, die weiterläuft, wenn du das Termux-Fenster schließt |
 | `paho-mqtt` | MQTT-Verbindung (Version 2.x wird benötigt) |
 
 ### 3️⃣ Akku-Abfrage testen
@@ -109,7 +109,19 @@ python mipad.py
 
 Alle 30 Sekunden erscheint eine Zeile mit `Daten gesendet: ...`. Mit `Strg+C` stoppst du es.
 
-### Dauerhaft im Hintergrund (tmux)
+### Dauerhaft im Hintergrund
+
+**Termux** ist die App, **tmux** ist ein kleines Zusatzprogramm *innerhalb* von Termux (wird mit `pkg install tmux` nachinstalliert). Mit tmux läuft das Skript weiter, wenn du das Termux-Fenster schließt oder zur Startseite wechselst.
+
+> ⚠️ Es läuft aber nur so lange, wie Android die **Termux-App selbst** am Leben lässt. Wird Termux vom System beendet, ist tmux mit allem darin ebenfalls weg.
+
+So gibst du Termux die besten Chancen:
+
+1. 🔒 **Wake-Lock aktivieren:** In der Termux-Benachrichtigung auf *Acquire wakelock* tippen oder im Terminal `termux-wake-lock` ausführen
+2. 🔋 **Akku-Optimierung für Termux ausschalten:** Android-Einstellungen, Apps, Termux, Akku, dann "Keine Einschränkungen" bzw. "Nicht optimieren" (Name je nach Hersteller verschieden)
+3. 👆 Termux bei manchen Herstellern **nicht aus der Liste der zuletzt benutzten Apps wegwischen**
+
+Starten in tmux:
 
 ```bash
 tmux new -s mipad
@@ -121,6 +133,8 @@ Dann mit `Strg+B` und danach `D` aus dem Fenster lösen, das Skript läuft weite
 ```bash
 tmux attach -t mipad
 ```
+
+Nach einem **Neustart des Geräts** muss das Skript von Hand wieder gestartet werden (oder du richtest dafür die App *Termux:Boot* ein).
 
 ---
 
@@ -196,7 +210,7 @@ Auch `battery_cycle` hängt vom Gerät ab: Nicht jedes Gerät liefert das Feld `
 | `ModuleNotFoundError: No module named 'paho'` | `pip install paho-mqtt` |
 | `python: not found` | `pkg install python` |
 | `Fehler bei MQTT-Verbindung` | Broker-IP und Port prüfen, läuft der Broker, ist er im Netz erreichbar? |
-| Skript stoppt, wenn Termux geschlossen wird | In `tmux` starten, Akku-Optimierung für Termux in den Android-Einstellungen ausschalten |
+| Skript stoppt im Hintergrund | In `tmux` starten, Wake-Lock aktivieren, Akku-Optimierung für Termux ausschalten (siehe *Dauerhaft im Hintergrund*) |
 
 ---
 
