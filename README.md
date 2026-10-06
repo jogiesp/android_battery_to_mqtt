@@ -71,7 +71,7 @@ Du solltest einen JSON-Block mit `percentage`, `temperature`, `current` usw. seh
 
 ```bash
 pkg install git
-git clone https://github.com/DEIN-NAME/android_battery_to_mqtt.git
+git clone https://github.com/jogiesp/android_battery_to_mqtt.git
 cd android_battery_to_mqtt
 ```
 
