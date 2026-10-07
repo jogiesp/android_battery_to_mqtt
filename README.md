@@ -9,7 +9,7 @@ Entwickelt und getestet auf einem **Xiaomi Redmi Pad 2**. 🚀
 ## ✨ Was kann das?
 
 - 🔋 Akkustand, Zustand, Ladestatus und Temperatur
-- ⚡ Aktueller Strom (mA) und **Leistung in Watt**
+- ⚡ 🧪 *Experimentell:* Strom (mA) und **Leistung in Watt** (eigenes Skript `mipad_watt.py`)
 - 🔁 **Ladezyklen** des Akkus, um die Alterung über Monate zu beobachten
 - 🌡️ CPU-, GPU-, Lade- und Gehäusetemperaturen
 - 🧮 Abschätzung, wie viel Energie der Akku bisher durchgesetzt hat, **inklusive Ladeverlusten**
@@ -21,9 +21,12 @@ Entwickelt und getestet auf einem **Xiaomi Redmi Pad 2**. 🚀
 
 | Datei | Zweck | Läuft |
 |---|---|---|
-| `mipad.py` | Hauptskript: Akku, Strom, Watt, Zyklen, CPU- und Ladetemperatur | 🔁 dauerhaft, alle 30 s |
+| `mipad.py` | ✅ Hauptskript (stabil): Akkustand, Zustand, Ladestatus, Zyklen, CPU- und Ladetemperatur | 🔁 dauerhaft, alle 30 s |
+| `mipad_watt.py` | 🧪 **Experimentell:** wie `mipad.py`, zusätzlich Strom (mA) und Leistung (Watt) | 🔁 statt `mipad.py`, alle 30 s |
 | `mipad_extra.py` | Zusatzwerte: GPU, Gehäuse, Speicher, Backlight, Akkuspannung | 🔁 optional, alle 60 s |
 | `mipad_akku.py` | Schätzt den bisherigen Energiedurchsatz des Akkus | 1️⃣ einmalig, nur bei Bedarf |
+
+> ☝️ Starte **entweder** `mipad.py` **oder** `mipad_watt.py`, nicht beide gleichzeitig. Sie senden an dieselben Topics.
 
 ---
 
@@ -109,6 +112,8 @@ python mipad.py
 
 Alle 30 Sekunden erscheint eine Zeile mit `Daten gesendet: ...`. Mit `Strg+C` stoppst du es.
 
+Die experimentelle Variante mit Watt startest du genauso: `python mipad_watt.py`.
+
 ### Dauerhaft im Hintergrund
 
 **Termux** ist die App, **tmux** ist ein kleines Zusatzprogramm *innerhalb* von Termux (wird mit `pkg install tmux` nachinstalliert). Mit tmux läuft das Skript weiter, wenn du das Termux-Fenster schließt oder zur Startseite wechselst.
@@ -149,11 +154,24 @@ Nach einem **Neustart des Geräts** muss das Skript von Hand wieder gestartet we
 | `battery_health` | Zustand laut Android (z. B. `GOOD`) | Text |
 | `battery_plugged` | Ladekabel (`PLUGGED_AC`, `UNPLUGGED` …) | Text |
 | `battery_status` | `CHARGING`, `DISCHARGING`, `FULL` … | Text |
-| `battery_current_mA` | Akkustrom, **positiv = Verbrauch, negativ = Laden** | mA |
-| `battery_power_W` | Aktuelle Leistung (Strom × Spannung) | W |
 | `battery_cycle` | Ladezyklen des Akkus | Anzahl |
 | `cpu_temperature` | CPU-Subsystem | °C |
 | `charger_temperature` | Ladebereich | °C |
+
+### 🧪 `mipad_watt.py` → `mipad/...` (experimentell)
+
+Sendet alle Werte von `mipad.py` und zusätzlich:
+
+| Topic | Bedeutung | Einheit |
+|---|---|---|
+| `battery_current_mA` | Momentaner Akkustrom, **negativ = Entladen (Verbrauch), positiv = Laden** (wie in der App *Ampere*) | mA |
+| `battery_power_W` | Momentane Leistung (Strom × Spannung) | W |
+| `battery_current_avg_mA` | Durchschnittlicher Akkustrom der letzten ca. 10 Minuten, aus dem Ladungszähler berechnet | mA |
+| `battery_power_avg_W` | Durchschnittliche Leistung der letzten ca. 10 Minuten | W |
+
+> 🧪 **Experimentell, bitte mit Vorsicht genießen!** Die Strom- und Leistungswerte sind noch **nicht genau**. Auf dem Redmi Pad 2 lagen sie im Vergleich mit der App *Ampere* beim Entladen zu hoch und beim Laden zu niedrig (Beispiel: Ampere zeigte 2,46 W, das Skript etwa 4 W). Vermutete Ursachen: `termux-battery-status` liefert nur einen stark schwankenden Momentwert, und die Abfrage selbst belastet das Gerät wahrscheinlich kurz. Der direkte Zugriff auf `/sys/class/power_supply/` ist ohne Root gesperrt. Die Durchschnittswerte (`*_avg_*`) sind ruhiger, aber ebenfalls nur eine Näherung. Sie erscheinen erst nach etwa 5 Minuten und beginnen neu, sobald du das Ladekabel ein- oder aussteckst.
+>
+> 🙋 **Hilfe gesucht:** Wenn du eine bessere Methode kennst, Strom und Leistung ohne Root auszulesen, freue ich mich über einen Issue oder Pull Request!
 
 ### `mipad_extra.py` → `mipad/extra/...`
 
